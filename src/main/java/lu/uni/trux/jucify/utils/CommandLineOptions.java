@@ -53,6 +53,7 @@ public class CommandLineOptions {
 	private static final Triplet<String, String, String> EXPORT_CG = new Triplet<String, String, String>("export-cg-to-dot", "e", "Export call graph to dot file");
 	private static final Triplet<String, String, String> EXPORT_CG_TXT = new Triplet<String, String, String>("export-cg-to-txt", "c", "Export call graph to txt file");
 	private static final Triplet<String, String, String> EXPORT_CG_BEFORE_PROCESSING_TXT = new Triplet<String, String, String>("export-cg-before-processing-to-txt", "b", "Export call graph before being processed by JuCify to txt file");
+	private static final Triplet<String, String, String> EXPORT_STUB = new Triplet<String, String, String>("export-stub", "s", "Export generated native stub to file (without extension)");
 	private static final Triplet<String, String, String> TIMEOUT = new Triplet<String, String, String>("timeout", "t", "Set the timeout for analysis");
 	private static final Triplet<String, String, String> TAINT_ANALYSIS = new Triplet<String, String, String>("taintanalysis", "ta", "Run taint analysis on APK");
 	private static final Triplet<String, String, String> PLATFORMS =
@@ -166,6 +167,14 @@ public class CommandLineOptions {
 				.argName(EXPORT_CG_BEFORE_PROCESSING_TXT.getValue0())
 				.required(false)
 				.build();
+		
+		final Option export_stub = Option.builder(EXPORT_STUB.getValue1())
+			.longOpt(EXPORT_STUB.getValue0())
+			.desc(EXPORT_STUB.getValue2())
+			.hasArg(true)
+			.argName(EXPORT_STUB.getValue0())
+			.required(false)
+			.build();
 
 		final Option platforms = Option.builder(PLATFORMS.getValue1())
 				.longOpt(PLATFORMS.getValue0())
@@ -193,6 +202,7 @@ public class CommandLineOptions {
 		this.options.addOption(raw);
 		this.options.addOption(ta);
 		this.options.addOption(export_cg_before_processing_txt);
+		this.options.addOption(export_stub);
 
 		for(Option o : this.firstOptions.getOptions()) {
 			this.options.addOption(o);
@@ -243,6 +253,14 @@ public class CommandLineOptions {
 	
 	public String getExportCallGraphBeforeProcessingTxtDestination() {
 		return this.cmdLine.getOptionValue(EXPORT_CG_BEFORE_PROCESSING_TXT.getValue0());
+	}
+
+	public String getExportStubDestination() {
+		return this.cmdLine.getOptionValue(EXPORT_STUB.getValue0());
+	}
+
+	public boolean hasExportStub() {
+		return this.cmdLine.hasOption(EXPORT_STUB.getValue1());
 	}
 	
 	public boolean hasExportCallGraphTxt() {

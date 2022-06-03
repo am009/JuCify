@@ -1,5 +1,11 @@
 package lu.uni.trux.jucify.instrumentation;
 
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.OutputStream;
+import java.io.PrintWriter;
 import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.List;
@@ -22,12 +28,14 @@ import soot.Type;
 import soot.Unit;
 import soot.UnitPatchingChain;
 import soot.VoidType;
+import soot.baf.BafASMBackend;
 import soot.javaToJimple.LocalGenerator;
 import soot.jimple.IfStmt;
 import soot.jimple.IntConstant;
 import soot.jimple.Jimple;
 import soot.jimple.JimpleBody;
 import soot.jimple.Stmt;
+import soot.options.Options;
 
 /*-
  * #%L
@@ -211,5 +219,37 @@ public class DummyBinaryClass {
 		Pair<List<Unit>, Stmt> p1 = new Pair<List<Unit>, Stmt>(unitsToAdd, stmt);
 		Pair<Local, Pair<List<Unit>, Stmt>> p2 = new Pair<Local, Pair<List<Unit>, Stmt>>(local, p1);
 		return p2;
+	}
+
+	public void dumpToFile(String destination) {
+		FileWriter writer;
+		try {
+			writer = new FileWriter(destination + ".jimple");
+		} catch (java.io.IOException e) {
+			System.err.println(e.getMessage());
+			e.printStackTrace();
+			return;
+		}
+		// Print jimple
+		try(PrintWriter out = new PrintWriter(writer)) {
+			soot.Printer.v().printTo(this.clazz, out);
+		}
+
+		// Print class file for decompile
+		int java_version = Options.v().java_version();
+		// OutputStream streamOut;
+		try{
+			try(OutputStream streamOut = new FileOutputStream(destination + ".class")) {
+				BafASMBackend backend = new BafASMBackend(this.clazz, java_version);
+				backend.generateClassFile(streamOut);
+			}
+		} catch (FileNotFoundException e) {
+			e.printStackTrace();
+			return;
+		} catch (IOException e) {
+			e.printStackTrace();
+			return;
+		}
+
 	}
 }

@@ -7,18 +7,22 @@ TAINT_ANALYSIS=false
 EXPORT_CG_DST=false
 EXPORT_CG_BEFORE_JUCIFY_DST=false
 CLEAN=false
+EXPORT_STUB=false
+RESUME=false # skip running nativediscloser
 
-while getopts f:p:rcteb option
+while getopts f:p:srctebu option
 do
     case "${option}"
         in
         f) APK_PATH=${OPTARG};;
         p) PLATFORMS_PATH=${OPTARG};;
+        s) EXPORT_STUB=true;;
         r) RAW=true;;
         e) EXPORT_CG_DST=true;;
         b) EXPORT_CG_BEFORE_JUCIFY_DST=true;;
         t) TAINT_ANALYSIS=true;;
         c) CLEAN=true;;
+        u) RESUME=true;;
     esac
 done
 
@@ -44,12 +48,15 @@ then
     print_info "Processing $pkg_name"
 fi
 
-if [ "$RAW" = false ]
+if [ "$RESUME" = false ]
 then
-    print_info "Extracting Java-to-Binary and Binary-to-Java function calls..."
+    if [ "$RAW" = false ]
+    then
+        print_info "Extracting Java-to-Binary and Binary-to-Java function calls..."
+    fi
+    ./execute_with_limit_time.sh ./launch_native_disclosurer.sh -f $APK_PATH # >/dev/null 2>/dev/null
+    wait
 fi
-./execute_with_limit_time.sh ./launch_native_disclosurer.sh -f $APK_PATH >/dev/null 2>/dev/null
-wait
 
 DST=$APK_DIRNAME"/"$APK_BASENAME
 mkdir -p $DST
@@ -89,11 +96,17 @@ then
     OPTS+="-b $APK_DIRNAME/"$APK_BASENAME"_cg_before.txt "
 fi
 
+if [ "$EXPORT_STUB" = true ]
+then
+    OPTS+="-s $APK_DIRNAME/"$APK_BASENAME"_stubs "
+fi
+
 if [ ! -z "$CALLGRAPHS_PATHS" ]
 then
     OPTS+="-f $CALLGRAPHS_PATHS"
 fi
 
+echo java -jar ../target/JuCify-0.1-jar-with-dependencies.jar -a $APK_PATH -p $PLATFORMS_PATH $OPTS
 java -jar ../target/JuCify-0.1-jar-with-dependencies.jar -a $APK_PATH -p $PLATFORMS_PATH $OPTS
 
 if [ "$CLEAN" = true ]

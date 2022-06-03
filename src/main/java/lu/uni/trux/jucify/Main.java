@@ -8,6 +8,7 @@ import org.javatuples.Pair;
 import org.slf4j.profiler.StopWatch;
 
 import lu.uni.trux.jucify.callgraph.CallGraphPatcher;
+import lu.uni.trux.jucify.instrumentation.DummyBinaryClass;
 import lu.uni.trux.jucify.utils.CommandLineOptions;
 import lu.uni.trux.jucify.utils.Constants;
 import lu.uni.trux.jucify.utils.CustomPrints;
@@ -16,7 +17,7 @@ import soot.Scene;
 import soot.jimple.infoflow.InfoflowConfiguration.CodeEliminationMode;
 import soot.jimple.infoflow.InfoflowConfiguration.PathReconstructionMode;
 import soot.jimple.infoflow.android.InfoflowAndroidConfiguration;
-import soot.jimple.infoflow.android.InfoflowAndroidConfiguration.SootIntegrationMode;
+// import soot.jimple.infoflow.android.InfoflowAndroidConfiguration.SootIntegrationMode;
 import soot.jimple.infoflow.android.SetupApplication;
 import soot.jimple.infoflow.android.manifest.ProcessManifest;
 import soot.jimple.toolkits.callgraph.CallGraph;
@@ -65,7 +66,23 @@ public class Main {
 		ifac.getAnalysisFileConfig().setTargetAPKFile(apk);
 		SetupApplication sa = new SetupApplication(ifac);
 		sa.constructCallgraph();
-		CallGraph cg = Scene.v().getCallGraph();
+		boolean construct_failed = false;
+		CallGraph cg = null;
+		try {
+			cg = Scene.v().getCallGraph();
+		} catch (RuntimeException e) {
+			CustomPrints.perror(e.getMessage());
+			CustomPrints.perror("Probably because of irregular class name.\n" +
+				"See https://github.com/secure-software-engineering/FlowDroid/issues/171\n" +
+				"Now try using setIgnoreFlowsInSystemPackages, but it's slow.");
+			construct_failed = true;
+		}
+		if (construct_failed) {
+			ifac.setIgnoreFlowsInSystemPackages(false);
+			sa = new SetupApplication(ifac);
+			sa.constructCallgraph();
+			cg = Scene.v().getCallGraph();
+		}
 		
 		if(options.hasExportCallBeforeProcessingGraphTxt()) {
 			Utils.exportCallGraphTxT(cg, options.getExportCallGraphBeforeProcessingTxtDestination());
@@ -97,9 +114,16 @@ public class Main {
 		instrumentationTime.stop();
 		ResultsAccumulator.v().setInstrumentationElapsedTime(instrumentationTime.elapsedTime() / 1000000000);
 
+		if (options.hasExportStub()) {
+			DummyBinaryClass.v().dumpToFile(options.getExportStubDestination());
+			if(!options.hasRaw()) {
+				CustomPrints.psuccess("Native stubs exported.");
+			}
+		}
+
 		int sizeCallGraphAfterPatch = cg.size();
 
-		sa.getConfig().setSootIntegrationMode(SootIntegrationMode.UseExistingInstance);
+		sa.getConfig().setSootIntegrationMode(InfoflowAndroidConfiguration.SootIntegrationMode.UseExistingInstance);
 		sa.getConfig().getPathConfiguration().setPathReconstructionMode(PathReconstructionMode.Precise);
 		sa.getConfig().setCodeEliminationMode(CodeEliminationMode.NoCodeElimination);
 
