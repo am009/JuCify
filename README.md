@@ -4,6 +4,23 @@ Unifying Android code for enhanced static analysis.
 
 ## Getting started
 
+### Docker image
+
+- mount platforms directory into container, eg: `/platforms`
+- mount folder containing apk into container, eg: `/root/apps`
+- entrypoint is `/root/JuCify/runTool.sh` (usage see `JuCify\scripts\main.sh`), specify mounted platforms dir after `-p`, full apk path after `-f`(can't use relative path). specify `-t` for taint analysis.
+- intermediate files and folders include `APK_NAME/ APK_NAME_result/ APK_NAME.native.log APK_NAME.flow.log`. specify `-c` in cmdline to automatically delete two folders.
+
+eg:
+```
+docker run --rm -v C:\Users\xxx\AppData\Local\Android\Sdk\platforms\:/platforms -v C:\Users\xxx\JuCify\benchApps\:/root/apps warrenwjk/jucify -p /platforms -f /root/apps/getter_imei.apk -t -c
+```
+
+or override entrypoint to execute preferred script
+```
+docker run --rm -v C:\Users\xxx\AppData\Local\Android\Sdk\platforms\:/platforms -v C:\Users\xxx\JuCify\benchApps\:/root/apps --entrypoint /bin/bash warrenwjk/jucify /root/JuCify/runTool.sh -p /platforms -f /root/apps/getter_imei.apk -t -c
+```
+
 ### Downloading the tool
 
 <pre>
