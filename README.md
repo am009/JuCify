@@ -21,6 +21,8 @@ or override entrypoint to execute preferred script
 docker run --rm -v C:\Users\xxx\AppData\Local\Android\Sdk\platforms\:/platforms -v C:\Users\xxx\JuCify\benchApps\:/root/apps --entrypoint /bin/bash warrenwjk/jucify /root/JuCify/runTool.sh -p /platforms -f /root/apps/getter_imei.apk -t -c
 ```
 
+nativediscloser submodule is modified, see commits in: https://github.com/am009/nativediscloser/tree/6897c58_docker
+
 ### Downloading the tool
 
 <pre>
