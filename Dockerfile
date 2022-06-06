@@ -9,7 +9,7 @@ SHELL ["/bin/bash", "-c"]
 
 RUN sed -i "s/archive.ubuntu.com/mirrors.tuna.tsinghua.edu.cn/g" /etc/apt/sources.list \
  && sed -i "s/security.ubuntu.com/mirrors.tuna.tsinghua.edu.cn/g" /etc/apt/sources.list \
- && apt update && DEBIAN_FRONTEND=noninteractive apt install -y --no-install-recommends git wget sudo software-properties-common nano maven openjdk-8-jdk-headless python3.7 python3.7-venv python3-pip python3.7-dev build-essential graphviz libgraphviz-dev \
+ && apt update && DEBIAN_FRONTEND=noninteractive apt install -y --no-install-recommends git wget sudo software-properties-common nano maven openjdk-8-jdk-headless python3.7 python3.7-venv python3-pip python3.7-dev build-essential graphviz libgraphviz-dev unzip \
  && apt-get clean && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
 WORKDIR /root
