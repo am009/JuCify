@@ -102,6 +102,7 @@ public class Main {
 		sa.getConfig().setSootIntegrationMode(SootIntegrationMode.UseExistingInstance);
 		sa.getConfig().getPathConfiguration().setPathReconstructionMode(PathReconstructionMode.Precise);
 		sa.getConfig().setCodeEliminationMode(CodeEliminationMode.NoCodeElimination);
+		sa.getConfig().getAnalysisFileConfig().setOutputFile(apk+".xml");
 
 		StopWatch taintAnalysisTime = new StopWatch("Taint Analysis");
 		taintAnalysisTime.start("Taint Analysis");
