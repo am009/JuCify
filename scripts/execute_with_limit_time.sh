@@ -2,7 +2,7 @@
 
 $* &
 pid=$!
-((lim = 1800))
+((lim = 5400))
 while [[ $lim -gt 0 ]] ; do
     sleep 1
     proc=$(ps -ef | awk -v pid=$pid '$2==pid{print}{}')
